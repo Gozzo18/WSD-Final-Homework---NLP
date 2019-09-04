@@ -1,0 +1,17 @@
+objective%1:09:00:: content.n.05
+benefit%1:21:00:: outgo.n.01
+service%1:04:07:: activity.n.01
+program%1:09:01:: ability.n.02
+giveaway%1:21:00:: acquisition.n.02
+goal%1:09:00:: content.n.05
+morale%1:26:00:: state.n.02
+productivity%1:07:00:: quality.n.01
+effort%1:04:00:: activity.n.01
+result%1:11:00:: ending.n.04
+absenteeism%1:04:00:: nonattendance.n.01
+turnover%1:24:00:: magnitude_relation.n.01
+accident%1:11:01:: trouble.n.03
+grievance%1:10:01:: communication.n.02
+quality%1:07:00:: attribute.n.02
+output%1:04:00:: transaction.n.01
+publication%1:10:00:: physical_entity.n.01

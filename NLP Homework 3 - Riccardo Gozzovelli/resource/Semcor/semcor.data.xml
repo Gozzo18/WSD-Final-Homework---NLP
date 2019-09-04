@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<corpus lang="en" source="semcor">
+<text id="d000" source="br-e30">
+<sentence id="d000.s000">
+<wf lemma="how" pos="ADV">How</wf>
+<instance id="d000.s000.t000" lemma="long" pos="ADJ">long</instance>
+<wf lemma="have" pos="VERB">has</wf>
+<wf lemma="it" pos="PRON">it</wf>
+<instance id="d000.s000.t001" lemma="be" pos="VERB">been</instance>
+<wf lemma="since" pos="ADP">since</wf>
+<wf lemma="you" pos="PRON">you</wf>
+<instance id="d000.s000.t002" lemma="review" pos="VERB">reviewed</instance>
+<wf lemma="the" pos="DET">the</wf>
+<instance id="d000.s000.t003" lemma="objective" pos="NOUN">objectives</instance>
+<wf lemma="of" pos="ADP">of</wf>
+<wf lemma="you" pos="PRON">your</wf>
+<instance id="d000.s000.t004" lemma="benefit" pos="NOUN">benefit</instance>
+<wf lemma="and" pos="CONJ">and</wf>
+<instance id="d000.s000.t005" lemma="service" pos="NOUN">service</instance>
+<instance id="d000.s000.t006" lemma="program" pos="NOUN">program</instance>
+<wf lemma="?" pos=".">?</wf>
+</sentence>
+<sentence id="d000.s001">
+<wf lemma="have" pos="VERB">Have</wf>
+<wf lemma="you" pos="PRON">you</wf>
+<instance id="d000.s001.t000" lemma="permit" pos="VERB">permitted</instance>
+<wf lemma="it" pos="PRON">it</wf>
+<wf lemma="to" pos="PRT">to</wf>
+<instance id="d000.s001.t001" lemma="become" pos="VERB">become</instance>
+<wf lemma="a" pos="DET">a</wf>
+<instance id="d000.s001.t002" lemma="giveaway" pos="NOUN">giveaway</instance>
+<instance id="d000.s001.t003" lemma="program" pos="NOUN">program</instance>
+<instance id="d000.s001.t004" lemma="rather" pos="ADV">rather</instance>
+<wf lemma="than" pos="ADP">than</wf>
+<wf lemma="one" pos="NUM">one</wf>
+<wf lemma="that" pos="DET">that</wf>
+<instance id="d000.s001.t005" lemma="have" pos="VERB">has</instance>
+<wf lemma="the" pos="DET">the</wf>
+<instance id="d000.s001.t006" lemma="goal" pos="NOUN">goal</instance>
+<wf lemma="of" pos="ADP">of</wf>
+<instance id="d000.s001.t007" lemma="improved" pos="ADJ">improved</instance>
+<instance id="d000.s001.t008" lemma="employee" pos="NOUN">employee</instance>
+<instance id="d000.s001.t009" lemma="morale" pos="NOUN">morale</instance>
+<wf lemma="and" pos="CONJ">and</wf>
+<wf lemma="," pos=".">,</wf>
+<instance id="d000.s001.t010" lemma="consequently" pos="ADV">consequently</instance>
+<wf lemma="," pos=".">,</wf>
+<instance id="d000.s001.t011" lemma="increased" pos="ADJ">increased</instance>
+<instance id="d000.s001.t012" lemma="productivity" pos="NOUN">productivity</instance>
+<wf lemma="?" pos=".">?</wf>
+</sentence>
+<sentence id="d000.s002">
+<wf lemma="what" pos="DET">What</wf>
+<instance id="d000.s002.t000" lemma="effort" pos="NOUN">effort</instance>
+<wf lemma="do" pos="VERB">do</wf>
+<wf lemma="you" pos="PRON">you</wf>
+<instance id="d000.s002.t001" lemma="make" pos="VERB">make</instance>
+<wf lemma="to" pos="PRT">to</wf>
+<instance id="d000.s002.t002" lemma="assess" pos="VERB">assess</instance>
+<instance id="d000.s002.t003" lemma="result" pos="NOUN">results</instance>
+<wf lemma="of" pos="ADP">of</wf>
+<wf lemma="you" pos="PRON">your</wf>
+<instance id="d000.s002.t004" lemma="program" pos="NOUN">program</instance>
+<wf lemma="?" pos=".">?</wf>
+</sentence>
+<sentence id="d000.s003">
+<wf lemma="do" pos="VERB">Do</wf>
+<wf lemma="you" pos="PRON">you</wf>
+<instance id="d000.s003.t000" lemma="measure" pos="VERB">measure</instance>
+<wf lemma="its" pos="PRON">its</wf>
+<wf lemma="relation" pos="NOUN">relation</wf>
+<wf lemma="to" pos="PRT">to</wf>
+<instance id="d000.s003.t001" lemma="reduced" pos="ADJ">reduced</instance>
+<instance id="d000.s003.t002" lemma="absenteeism" pos="NOUN">absenteeism</instance>
+<wf lemma="," pos=".">,</wf>
+<instance id="d000.s003.t003" lemma="turnover" pos="NOUN">turnover</instance>
+<wf lemma="," pos=".">,</wf>
+<instance id="d000.s003.t004" lemma="accident" pos="NOUN">accidents</instance>
+<wf lemma="," pos=".">,</wf>
+<wf lemma="and" pos="CONJ">and</wf>
+<instance id="d000.s003.t005" lemma="grievance" pos="NOUN">grievances</instance>
+<wf lemma="," pos=".">,</wf>
+<wf lemma="and" pos="CONJ">and</wf>
+<wf lemma="to" pos="PRT">to</wf>
+<instance id="d000.s003.t006" lemma="improved" pos="ADJ">improved</instance>
+<instance id="d000.s003.t007" lemma="quality" pos="NOUN">quality</instance>
+<wf lemma="and" pos="CONJ">and</wf>
+<instance id="d000.s003.t008" lemma="output" pos="NOUN">output</instance>
+<wf lemma="?" pos=".">?</wf>
+</sentence>
+<sentence id="d000.s004">
+<wf lemma="have" pos="VERB">Have</wf>
+<wf lemma="you" pos="PRON">you</wf>
+<instance id="d000.s004.t000" lemma="set" pos="VERB">set</instance>
+<instance id="d000.s004.t001" lemma="specific" pos="ADJ">specific</instance>
+<instance id="d000.s004.t002" lemma="objective" pos="NOUN">objectives</instance>
+<wf lemma="for" pos="ADP">for</wf>
+<wf lemma="you" pos="PRON">your</wf>
+<instance id="d000.s004.t003" lemma="employee" pos="NOUN">employee</instance>
+<instance id="d000.s004.t004" lemma="publication" pos="NOUN">publication</instance>
+<wf lemma="?" pos=".">?</wf>
+</sentence>
+</text>
+</corpus>

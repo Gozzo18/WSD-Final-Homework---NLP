@@ -1,6 +1,7 @@
 import re
 import csv
 import nltk
+import os
 from nltk.corpus import wordnet as wn
 nltk.download('wordnet')
 
@@ -125,3 +126,81 @@ def bnToWnLex(bn_labels, babelNet_to_lexNames):
         lex_labels.append(temp)
     
     return lex_labels
+
+def lemmaToWNsynset(sentences, labels, isTrain):
+    """
+
+    Transform every lemma associated to a sensekey in a wordnet synset. 
+    Then add the mapping lemma => wn_synset, wn_synset => sensekey in two dictionaries dictionary that will be saved as a .txt file.
+    
+    :param sentences: list of sentences
+    :param labels: list of labels composed by lemmas and sensekeys
+    :param isTrain: boolean variable used to distinguish between training and dev set operations
+    :param wordnetCompression: boolean variable used to check whether the wordnet_synset => sensekeys mapping must be saved
+    :return updated_labels = list of labels with lemmas and wn_synsets 
+    
+    """
+    lemma_to_wn = {} #Dictionary containing the mapping lemma => wordnet synset
+    updated_labels = []
+
+    #For every sentence of the dataset
+    for i in range(len(sentences)):
+        temp = []
+        current_label_sequence= labels[i]
+        current_sentence = sentences[i]
+        #For every token in the current sentence
+        for j in range(len(current_sentence)):
+            lemma = current_sentence[j]
+            label = current_label_sequence[j]
+            #Check if the label is a sensekey
+            if re.search(r'(%[1-9])', label):
+                #From the sensekey extract the synset
+                pos = wn.lemma_from_key(label).synset().pos()
+                offset = wn.lemma_from_key(label).synset().offset()
+                wn_synset = "wn:" + str(offset).zfill( 8) + pos
+                #Add pair (lemma, wordnet_synset) to the dictionary
+                if not lemma in lemma_to_wn:
+                    lemma_to_wn[lemma] = [wn_synset]
+                else:
+                    if not wn_synset in lemma_to_wn[lemma]:
+                        lemma_to_wn[lemma].append(wn_synset)
+                lemma = wn_synset
+            temp.append(lemma)
+        updated_labels.append(temp)
+
+    #If we worked on the training set, save the dictionary into two files
+    if isTrain:
+        if not os.path.exists("../../resource/Mapping_Files/lemma_to_wn.txt"):
+            with open("../../resource/Mapping_Files/lemma_to_wn.txt", 'w') as file:
+                for elem in lemma_to_wn:
+                    line = elem + " " + " ".join(lemma_to_wn[elem])
+                    file.write(line + "\n")
+
+    return updated_labels
+
+def lemmaToSensekey(sentences, labels):
+    """
+    Save the mapping lemma => sensekey
+
+    :param sentences: list of tokenized sentences
+    :param sensekey: list of tokenized labels
+    :return : saved file containing the mapping
+    """
+
+    lemma_to_sensekeys = {}
+    #If the following path does not exist, extract the mapping
+    if not os.path.exists("../../resource/Mapping_Files/lemma_to_sensekeys.txt"):
+        for sentence, label_sequence in zip(sentences, labels):
+            for lemma, label in zip(sentence, label_sequence):
+                if re.search(r'(%[1-9])', label):
+                    if not lemma in lemma_to_sensekeys:
+                        lemma_to_sensekeys[lemma] = [label]
+                    else:
+                        if not label in lemma_to_sensekeys[lemma]:
+                            lemma_to_sensekeys[lemma].append(label)
+    #Then save it
+    with open("../../resource/Mapping_Files/lemma_to_sensekeys.txt",'w') as file:
+        for elem in lemma_to_sensekeys:
+            line = elem + " " + " ".join(lemma_to_sensekeys[elem])
+            file.write(line + "\n")
+    

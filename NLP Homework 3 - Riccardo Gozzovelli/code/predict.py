@@ -1,8 +1,14 @@
-import parseDataset
+import Utils
 import os
 import tensorflow as tf
 import numpy as np
-import mappings
+import Mappings
+
+MODEL_PATH = 'Model/model.ckpt'
+META_GRAPH_PATH = 'Model/model.ckpt.meta' 
+
+OUTPUT_VOCAB_FILE = 'Mapping_Files/sensekey_output_vocabulary.txt'
+LEMMAS_MAPPING = 'Mapping_Files/lemma_to_sensekeys.txt'
 
 
 def predict_babelnet(input_path : str, output_path : str, resources_path : str) -> None:
@@ -22,46 +28,53 @@ def predict_babelnet(input_path : str, output_path : str, resources_path : str) 
     :param resources_path: the path of the resources folder containing your model and stuff you might need.
     :return: None
     """
-    test_x, token_positions_to_predict = parseDataset.createDataset(input_path, resources_path + 'embeddings/senseval3_embeddings.pickle')
-    print()
-    print("Building the model and loading weights \n")
-    #Build model and load weights
-    predictions = []
-    tf.reset_default_graph()
 
-    with tf.Session() as sess:
-            # Restore variables from disk.    
-            saver = tf.train.import_meta_graph(resources_path + "model/checkpoint/model.ckpt.meta")
-            graph = tf.get_default_graph()
-            saver.restore(sess, resources_path + "model/checkpoint/model.ckpt")
-            print("Model restored \n")
-            #Get the input tensor
-            inputs = graph.get_tensor_by_name('Inputs:0')
-            keep_prob = graph.get_tensor_by_name("Probabilities:0")
-            #Get the tensor layer after softmax and argmax operation
-            prediction_tensor = graph.get_tensor_by_name("dense_sensekeys/ArgMax_Predictions_sensekey:0")
-            #Feed the model with one sample at the time
-            for sample in test_x[:2]:                         
-                    resized_sample = np.reshape(sample, (1, sample.shape[0], 512))
-                    padded_sample = np.ones([37, 70, 512], dtype='float32')
-                    padded_sample[:resized_sample.shape[0], :resized_sample.shape[1], :resized_sample.shape[2]] = resized_sample 
-                    feed_dict = {keep_prob:1.0, inputs:padded_sample}
-                    predictions.append(sess.run(prediction_tensor[0], feed_dict))
-    predictions = np.asarray(predictions)
-    print("Predictions obtained: ", predictions.shape)
+    #Parse the dataset and extract all the required informations
+    test_x, token_identifier = Utils.extractTokensToPredict(input_path)
     print()
-    inverted_vocab = mappings.extractVocabulary(resources_path + 'Mapping_Files/inverted_sensekey_mapping.txt')
-    decoded_predictions = mappings.decodeLabels(predictions, inverted_vocab)
-    
+
+    wordnetCompression = False
+
+    output_vocab = {}
+    with open(resources_path + OUTPUT_VOCAB_FILE, 'r') as file:
+        for line in file:
+            key = line.split()[0]
+            value = line.split()[1]
+            output_vocab[key] = value
+    #The inverted mapping will be used later on to decode labels
+    inverted_output_vocab = {v: k for k, v in output_vocab.items()}
+   
+    lemmas_mapping = {}
+    with open(resources_path + LEMMAS_MAPPING, 'r') as file:
+        for line in file:
+            key = line.split()[0]
+            value = line.split()[1:]
+            lemmas_mapping[key] = value
+
+    #Retrieve the label identifiers
+    label_identifiers = Utils.extractLabelIdentifier(test_x, token_identifier, lemmas_mapping, output_vocab, wordnetCompression)
+    sequence_length, embeddings = Utils.ELMo_module(test_x, 400)
+    print("Embedding size: ", np.asarray(embeddings).shape)
+    print()
+
+    #Retrieve predictions for the lemma to disambiguate
+    predictions = Utils.predictions_architecture_2(embeddings, sequence_length, resources_path +  MODEL_PATH, resources_path + META_GRAPH_PATH)
+    print()
+
+    #Evaluate the labels
+    labels = Utils.evaluate(predictions, token_identifier, label_identifiers)
+
+    #Decode the labels
+    decoded_labels = Utils.decodeLabels(labels, inverted_output_vocab)
+
     #Transform first sensekeys into wordnet synsets
-    wordnet_predictions = mappings.sensekeyToWN(decoded_predictions)
+    wordnet_predictions = Mappings.sensekeyToWN(decoded_labels)
     print("Retrieve BabelNet synset \n")
     #Transform wordnet synsets into babelnet synsets
-    babelnet_predictions = mappings.wordnetToBN(wordnet_predictions, resources_path + 'Mapping_Files/babelnet2wordnet.tsv')
+    babelnet_predictions = Mappings.wordnetToBN(wordnet_predictions, resources_path + 'Mapping_Files/babelnet2wordnet.tsv')
     
     print("Writing BabelNet predictions file")
-    mappings.writePredictionFile(token_positions_to_predict, babelnet_predictions, output_path) 
-
+    Mappings.writePredictionFile(token_identifier, babelnet_predictions, output_path) 
 
 def predict_wordnet_domains(input_path : str, output_path : str, resources_path : str) -> None:
     """
@@ -80,46 +93,51 @@ def predict_wordnet_domains(input_path : str, output_path : str, resources_path 
     :param resources_path: the path of the resources folder containing your model and stuff you might need.
     :return: None
     """
-    test_x, token_positions_to_predict = parseDataset.createDataset(input_path, resources_path + 'embeddings/senseval3_embeddings.pickle')
+    test_x, token_identifier = Utils.extractTokensToPredict(input_path)
     print()
-    print("Building the model and loading weights \n")
-    #Build model and load weights
-    predictions = []
-    tf.reset_default_graph()
 
-    with tf.Session() as sess:
-            # Restore variables from disk.    
-            saver = tf.train.import_meta_graph(resources_path + "model/checkpoint/model.ckpt.meta")
-            graph = tf.get_default_graph()
-            saver.restore(sess, resources_path + "model/checkpoint/model.ckpt")
-            print("Model restored \n")
-            #Get the input tensor
-            inputs = graph.get_tensor_by_name('Inputs:0')
-            keep_prob = graph.get_tensor_by_name("Probabilities:0")
-            #Get the tensor layer after softmax and argmax operation
-            prediction_tensor = graph.get_tensor_by_name("dense_sensekeys/ArgMax_Predictions_sensekey:0")
-            #Feed the model with one sample at the time
-            for sample in test_x[:1]:           
-                    resized_sample = np.reshape(sample, (1, sample.shape[0], 512))
-                    padded_sample = np.ones([37, 70, 512], dtype='float32')
-                    padded_sample[:resized_sample.shape[0], :resized_sample.shape[1], :resized_sample.shape[2]] = resized_sample 
-                    feed_dict = {keep_prob:1.0, inputs:padded_sample}
-                    predictions.append(sess.run(prediction_tensor[0], feed_dict))
-    predictions = np.asarray(predictions)
-    print("Predictions obtained: ", predictions.shape)
+    wordnetCompression = False
+
+    output_vocab = {}
+    with open(resources_path + OUTPUT_VOCAB_FILE, 'r') as file:
+        for line in file:
+            key = line.split()[0]
+            value = line.split()[1]
+            output_vocab[key] = value
+    #The inverted mapping will be used later on to decode labels
+    inverted_output_vocab = {v: k for k, v in output_vocab.items()}
+   
+    lemmas_mapping = {}
+    with open(resources_path + LEMMAS_MAPPING, 'r') as file:
+        for line in file:
+            key = line.split()[0]
+            value = line.split()[1:]
+            lemmas_mapping[key] = value
+
+    #Retrieve the label identifiers
+    label_identifiers = Utils.extractLabelIdentifier(test_x, token_identifier, lemmas_mapping, output_vocab, wordnetCompression)
+    sequence_length, embeddings = Utils.ELMo_module(test_x, 400)
+    print("Embedding size: ", np.asarray(embeddings).shape)
     print()
-    inverted_vocab = mappings.extractVocabulary(resources_path + 'Mapping_Files/inverted_sensekey_mapping.txt')
-    decoded_predictions = mappings.decodeLabels(predictions, inverted_vocab)
+
+    #Retrieve predictions for the lemma to disambiguate
+    predictions = Utils.predictions_architecture_2(embeddings, sequence_length, resources_path +  MODEL_PATH, resources_path + META_GRAPH_PATH)
+    print()
+
+    #Evaluate the labels
+    labels = Utils.evaluate(predictions, token_identifier, label_identifiers)
+
+    #Decode the labels
+    decoded_labels = Utils.decodeLabels(labels, inverted_output_vocab)
     
     #Transform first sensekeys into wordnet synsets
-    wordnet_predictions = mappings.sensekeyToWN(decoded_predictions)
+    wordnet_predictions = Mappings.sensekeyToWN(decoded_labels)
     #Transform wordnet synsets into babelnet synsets
-    babelnet_predictions = mappings.wordnetToBN(wordnet_predictions, resources_path + 'Mapping_Files/babelnet2wordnet.tsv')
+    babelnet_predictions = Mappings.wordnetToBN(wordnet_predictions, resources_path + 'Mapping_Files/babelnet2wordnet.tsv')
     print("Retrieve WordNet Domains \n")
-    domain_predictions = mappings.bnToDomains(babelnet_predictions, resources_path + 'Mapping_Files/babelnet2wndomains.tsv')
+    domain_predictions = Mappings.bnToDomains(babelnet_predictions, resources_path + 'Mapping_Files/babelnet2wndomains.tsv')
     print("Writing Domain predictions file")
-    mappings.writePredictionFile(token_positions_to_predict, domain_predictions, output_path)  
-
+    Mappings.writePredictionFile(token_identifier, domain_predictions, output_path)  
 
 def predict_lexicographer(input_path : str, output_path : str, resources_path : str) -> None:
     """
@@ -138,43 +156,48 @@ def predict_lexicographer(input_path : str, output_path : str, resources_path : 
     :param resources_path: the path of the resources folder containing your model and stuff you might need.
     :return: None
     """
-    test_x, token_positions_to_predict = parseDataset.createDataset(input_path, resources_path + 'embeddings/senseval3_embeddings.pickle')
+    test_x, token_identifier = Utils.extractTokensToPredict(input_path)
     print()
-    print("Building the model and loading weights \n")
-    #Build model and load weights
-    predictions = []
-    tf.reset_default_graph()
 
-    with tf.Session() as sess:
-            # Restore variables from disk.    
-            saver = tf.train.import_meta_graph(resources_path + "model/checkpoint/model.ckpt.meta")
-            graph = tf.get_default_graph()
-            saver.restore(sess, resources_path + "model/checkpoint/model.ckpt")
-            print("Model restored \n")
-            #Get the input tensor
-            inputs = graph.get_tensor_by_name('Inputs:0')
-            keep_prob = graph.get_tensor_by_name("Probabilities:0")
-            #Get the tensor layer after softmax and argmax operation
-            prediction_tensor = graph.get_tensor_by_name("dense_sensekeys/ArgMax_Predictions_sensekey:0")
-            #Feed the model with one sample at the time
-            for sample in test_x[:1]:           
-                    resized_sample = np.reshape(sample, (1, sample.shape[0], 512))
-                    padded_sample = np.ones([37, 70, 512], dtype='float32')
-                    padded_sample[:resized_sample.shape[0], :resized_sample.shape[1], :resized_sample.shape[2]] = resized_sample 
-                    feed_dict = {keep_prob:1.0, inputs:padded_sample}
-                    predictions.append(sess.run(prediction_tensor[0], feed_dict))
-    predictions = np.asarray(predictions)
-    print("Predictions obtained: ", predictions.shape)
-    print("Predictions obtained: ", predictions.shape)
+    wordnetCompression = False
+
+    output_vocab = {}
+    with open(resources_path + OUTPUT_VOCAB_FILE, 'r') as file:
+        for line in file:
+            key = line.split()[0]
+            value = line.split()[1]
+            output_vocab[key] = value
+    #The inverted mapping will be used later on to decode labels
+    inverted_output_vocab = {v: k for k, v in output_vocab.items()}
+   
+    lemmas_mapping = {}
+    with open(resources_path + LEMMAS_MAPPING, 'r') as file:
+        for line in file:
+            key = line.split()[0]
+            value = line.split()[1:]
+            lemmas_mapping[key] = value
+
+    #Retrieve the label identifiers
+    label_identifiers = Utils.extractLabelIdentifier(test_x, token_identifier, lemmas_mapping, output_vocab, wordnetCompression)
+    sequence_length, embeddings = Utils.ELMo_module(test_x, 400)
+    print("Embedding size: ", np.asarray(embeddings).shape)
     print()
-    inverted_vocab = mappings.extractVocabulary(resources_path + 'Mapping_Files/inverted_sensekey_mapping.txt')
-    decoded_predictions = mappings.decodeLabels(predictions, inverted_vocab)
+
+    #Retrieve predictions for the lemma to disambiguate
+    predictions = Utils.predictions_architecture_2(embeddings, sequence_length, resources_path +  MODEL_PATH, resources_path + META_GRAPH_PATH)
+    print()
+
+    #Evaluate the labels
+    labels = Utils.evaluate(predictions, token_identifier, label_identifiers)
+
+    #Decode the labels
+    decoded_labels = Utils.decodeLabels(labels, inverted_output_vocab)
     
     #Transform first sensekeys into wordnet synsets
-    wordnet_predictions = mappings.sensekeyToWN(decoded_predictions)
+    wordnet_predictions = Mappings.sensekeyToWN(decoded_labels)
     #Transform wordnet synsets into babelnet synsets
-    babelnet_predictions = mappings.wordnetToBN(wordnet_predictions, resources_path + 'Mapping_Files/babelnet2wordnet.tsv')
+    babelnet_predictions = Mappings.wordnetToBN(wordnet_predictions, resources_path + 'Mapping_Files/babelnet2wordnet.tsv')
     print("Retrieve Lexicographer prediction \n")
-    lex_predictions = mappings.bnToLexnames(babelnet_predictions, resources_path + 'Mapping_Files/babelnet2lexnames.tsv')
+    lex_predictions = Mappings.bnToLexnames(babelnet_predictions, resources_path + 'Mapping_Files/babelnet2lexnames.tsv')
     print("Writing Lexicographer predictions file")
-    mappings.writePredictionFile(token_positions_to_predict, lex_predictions, output_path)   
+    Mappings.writePredictionFile(token_identifier, lex_predictions, output_path)   

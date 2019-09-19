@@ -139,27 +139,11 @@ def writePredictionFile(prediction_positions, predictions, output_file):
     :param outuput_file: path of the predicted file
     """
     with open(output_file, 'w') as prediction_file:
-            for i in range(len(prediction_positions)):
-                    labels_to_write = prediction_positions[i]
-                    predictions_to_write = predictions[i]
-                    for elem in labels_to_write:
-                            id, pointer = elem.split()
-                            line = id + ' ' + predictions_to_write[int(pointer)] + '\n'
-                            prediction_file.write(line) 
-                            
-                            
-                            
-def extractVocabulary(vocabulary_file):
-    """
-    Retrieve the vocabulary to map integer predictions to word/sensekey/hypernymy predictions
-
-    :param vocabulary_file: path of the vocabulary file
-    :return vocab: dictionary of word/sensekey/hypernymy
-    """
-    vocab = {}
-    with open(vocabulary_file, 'r') as file:
-            for line in file:
-                key = int(line.split()[0])
-                value = (line.split()[1]).replace('\n', '')
-                vocab[key] = value
-    return vocab
+        for i in range(len(prediction_positions)):
+            label_index = 0
+            for j in range(len(prediction_positions[i])):
+                if not prediction_positions[i][j] == '0':
+                        prediction = predictions[i][label_index]
+                        line = prediction_positions[i][j] + ' ' + prediction + '\n'
+                        prediction_file.write(line)     
+                        label_index += 1

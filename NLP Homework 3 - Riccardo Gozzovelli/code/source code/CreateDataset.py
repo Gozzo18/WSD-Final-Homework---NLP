@@ -78,7 +78,7 @@ def padDatasets(embedding_file, max_len, embedding_size, padded_sequence_file):
             
     return np.asarray(x)
 
-def singleTaskTrainingSet(labels, output_vocab, max_length, isSimple):
+def singleTaskTrainingSet(labels, output_vocab, max_length):
 
     """
     Substitute each label with its own integer value contained in the vocabulary and apply padding.
@@ -86,7 +86,6 @@ def singleTaskTrainingSet(labels, output_vocab, max_length, isSimple):
     :param labels: list of tokenized labels
     :param output_vocab: dictionary containing the mapping label => integer
     :param max_length: maximum length of each sample 
-    :param isSimple: boolean value used to check which type of network will be used
 
     :return y: numpy array of integers
     :return sequence_length: numpy array containing the original length of every sample
@@ -109,19 +108,5 @@ def singleTaskTrainingSet(labels, output_vocab, max_length, isSimple):
 
     #Pad intermediate_x and intermediate_y to same dimension
     y = pad_sequences(intermediate_y, truncating='post', padding='post', dtype='int64', maxlen=max_length, value=0)
-
-    if not isSimple: 
-        length = len(x)
-        if not length % 37 == 0:
-            division_result = int(np.ceil(length/37))
-            size = 37 * division_result
-            padded_x = np.zeros([size, max_length, embedding_size], dtype='float32')
-            padded_x[:x.shape[0], :x.shape[1], :x.shape[2]] = x
-            padded_y = np.zeros([size, max_length], dtype='int32')
-            padded_y[:y.shape[0], :y.shape[1]] = y
-            for i in range(size-len(sequence_length)):
-                sequence_length.append(0)
-        x = padded_x
-        y = padded_y
 
     return np.asarray(y), np.asarray(sequence_length)

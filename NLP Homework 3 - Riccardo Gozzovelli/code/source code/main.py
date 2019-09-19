@@ -64,7 +64,6 @@ def train():
     hypernymsCompression = False #If true, use hypernymes compression technique
     wordnetCompression = False #If true use wordnet compression technique
     singleTaskLearning = True #If true use a multi task network
-    isSimple = True # If false use attention layer, else use simple Bi-LSTM
 
     print("You are currently working with:\nWordnet Compression = %r\tHypernyms Compression = %r\tSingle-Task Learning = %r\n" %(wordnetCompression, hypernymsCompression, singleTaskLearning))
 
@@ -133,16 +132,16 @@ def train():
 
     #Retrieve the training inputs and labels for the network 
     train_x = CreateDataset.padDatasets(TRAIN_EMBEDDING_FILE, MAX_LENGTH, EMBEDDING_SIZE, TRAIN_PADDED_SEQUENCES_FILE)
-    train_y, train_sequence_length = CreateDataset.singleTaskTrainingSet(train_sorted_labels, output_vocabulary, MAX_LENGTH, isSimple)
+    train_y, train_sequence_length = CreateDataset.singleTaskTrainingSet(train_sorted_labels, output_vocabulary, MAX_LENGTH)
     #Retrieve the development inputs and labels for the network 
     dev_x = CreateDataset.padDatasets(DEV_EMBEDDING_FILE, MAX_LENGTH, EMBEDDING_SIZE, DEV_PADDED_SEQUENCES_FILE)
-    dev_y, dev_sequence_length = CreateDataset.singleTaskTrainingSet(dev_sorted_labels, output_vocabulary,  MAX_LENGTH, isSimple)
+    dev_y, dev_sequence_length = CreateDataset.singleTaskTrainingSet(dev_sorted_labels, output_vocabulary,  MAX_LENGTH)
     #Retrieve training and development domain and lexname labels in case of a multitasking architecture
     if not singleTaskLearning:
-        train_domain_y, _ = CreateDataset.singleTaskTrainingSet(train_domain_labels, domain_output_vocabulary, MAX_LENGTH, False)
-        train_lexname_y, _ = CreateDataset.singleTaskTrainingSet(train_lex_labels, lex_output_vocabulary, MAX_LENGTH, False)
-        dev_domain_y, _ = CreateDataset.singleTaskTrainingSet(dev_domain_labels, domain_output_vocabulary, MAX_LENGTH, False)
-        dev_lexname_y, _ = CreateDataset.singleTaskTrainingSet(dev_lex_labels, lex_output_vocabulary,  MAX_LENGTH, False)
+        train_domain_y, _ = CreateDataset.singleTaskTrainingSet(train_domain_labels, domain_output_vocabulary, MAX_LENGTH)
+        train_lexname_y, _ = CreateDataset.singleTaskTrainingSet(train_lex_labels, lex_output_vocabulary, MAX_LENGTH)
+        dev_domain_y, _ = CreateDataset.singleTaskTrainingSet(dev_domain_labels, domain_output_vocabulary, MAX_LENGTH)
+        dev_lexname_y, _ = CreateDataset.singleTaskTrainingSet(dev_lex_labels, lex_output_vocabulary,  MAX_LENGTH)
     print("Dimension of train_x: ", train_x.shape)
     print("Dimension of train_y: ", train_y.shape)
     print("Dimension of dev_x: ", dev_x.shape)
@@ -161,10 +160,7 @@ def train():
     with g.as_default():
         if singleTaskLearning:
             print("Creating single-task learning architecture")
-            if isSimple:
-                inputs, labels, input_prob, output_prob, state_prob, sequence_length, loss, train_op, acc = BiLSTM.simpleBiLSTM(BATCH_SIZE, EMBEDDING_SIZE, HIDDEN_SIZE, OUTPUT_VOCABULARY_LENGTH) 
-            else: 
-                inputs, labels, input_prob, output_prob, state_prob, sequence_length, loss, train_op, acc = attentiveBidirectionalModel(BATCH_SIZE, EMBEDDING_SIZE, HIDDEN_SIZE, OUTPUT_VOCABULARY_LENGTH)
+            inputs, labels, input_prob, output_prob, state_prob, sequence_length, loss, train_op, acc = BiLSTM.simpleBiLSTM(BATCH_SIZE, EMBEDDING_SIZE, HIDDEN_SIZE, OUTPUT_VOCABULARY_LENGTH) 
         else:
             print("Creating multi-task learning architecture")
             inputs, sensekey_labels, domain_labels, lexname_labels, keep_prob, lambda_1, lambda_2, sequence_length, lr, sensekey_loss, domain_loss, lexname_loss, train_op, acc =  multitaskBidirectionalModel(BATCH_SIZE, EMBEDDING_SIZE, HIDDEN_SIZE, MAX_LENGTH, OUTPUT_VOCABULARY_LENGTH, DOMAIN_VOCABULARY_LENGTH, LEXNAME_VOCABULARY_LENGTH)
